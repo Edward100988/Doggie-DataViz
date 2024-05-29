@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dog Ranking Line Chart with Tooltips</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        .container {
+            background-color: #ffffff;
+            text-align: center;
+            font-family: 'Poppins', sans-serif;
+            padding: 0px;
+            margin: 0px;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-radius: 50%;
+            background-color: #ffffff4a;
+        }
+
+        .back-button:hover {
+            background-color: #ffffff;
+        }
+
+        .title {
+            background-color: #3685FB;
+            padding: 20px;
+        }
+
+        .title h1 {
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 44px;
+            text-align: center;
+        }
+
+        .title p {
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 400;
+            font-size: 22px;
+            text-align: left;
+            padding-left: 100px; 
+            padding-right: 100px;
+        }
+        
+
+        .tooltip {
+            position: absolute;
+            text-align: left;
+            padding: 8px;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            background: white;
+            border: 2px solid #3685FB;
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+        .line {
+            fill: none;
+            stroke-width: 2px;
+        }
+        .dot {
+            fill: blue;
+            stroke: #fff;
+        }
+        .dog-names {
+            margin: 110px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 30px; 
+            justify-items: center; 
+            background-color: aliceblue;
+            padding: 50px;
+        }
+        .dog-item {
+            width: 100px;
+        }
+        .dog-image {
+            width: 100%;
+            height: 100px;
+            border-radius: 10%;
+            overflow: hidden;
+            margin-bottom: 10px;
+            border: 4px solid transparent;
+        }
+        .dog-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .dog-name {
+            font-size: 14px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <svg class="back-button" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" onclick="window.location.href = 'home.html';">
+            <path d="M11 18L5 12M5 12L11 6M5 12L19 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+
+        <div class="title">
+            <h1>Popularity Of Dog Breeds</h1>
+            <p>Explore the changing rankings of the top 10 most popular dog breeds over time through a dynamic multi-line chart. Gain insights into the evolving preferences and trends surrounding beloved breeds like the Labrador Retriever, German Shepherd, Golden Retriever, and more.</p>    
+          </div>
+        <div id="chart"></div>
+        <div class="chart-title">Most Popular Dog Breeds 2013-2023</div>
+        <div class="dog-names"></div>
+    </div>
+
+    <script>
+        const margin = {top:60, right: 20, bottom: 30, left: 50},
+            width = 1160 - margin.left - margin.right,
+            height = 600 - margin.top - margin.bottom;
+
+        const svg = d3.select("#chart")
+            .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        const div = d3.select("body").append("div") 
+            .attr("class", "tooltip")       
+            .style("opacity", 0);
+
+        d3.csv("dog_rankings.csv").then(function(data) {
+            
+            data.forEach(function(d) {
+                d.Year = +d.Year;
+                d["Retrievers (Labrador)"] = +d["Retrievers (Labrador)"];
+                d["French Bulldogs"] = +d["French Bulldogs"];
+                d["German Shepherd Dogs"] = +d["German Shepherd Dogs"];
+                d["Retrievers (Golden)"] = +d["Retrievers (Golden)"];
+                d["Bulldogs"] = +d["Bulldogs"];
+                d["Poodles"] = +d["Poodles"];
+                d["Beagles"] = +d["Beagles"];
+                d["Rottweilers"] = +d["Rottweilers"];
+                d["Pointers"] = +d["Pointers"];
+                d["Dachshund"] = +d["Dachshund"];
+            });
+
+            const x = d3.scaleLinear()
+                .domain([d3.min(data, d => d.Year), d3.max(data, d => d.Year)])
+                .range([0, width]);
+
+            const y = d3.scaleLinear()
+                .domain([1, 13])
+                .range([height, 0]);
+
+            const line = d3.line()
+                .x(d => x(d.Year))
+                .y(d => y(d.rank));
+
+            const dogNames = [
+                "Retrievers (Labrador)",
+                "French Bulldogs",
+                "German Shepherd Dogs",
+                "Retrievers (Golden)",
+                "Bulldogs",
+                "Poodles",
+                "Beagles",
+                "Rottweilers",
+                "Pointers",
+                "Dachshund"
+            ];
+
+            const dotsGroup = svg.append("g");
+            dogNames.forEach(function(dogName, i) {
+                svg.append("path")
+                    .datum(data)
+                    .attr("class", "line")
+                    .style("stroke", d3.schemeCategory10[i])
+                    .attr("d", d => line(d.map(d => ({Year: d.Year, rank: d[dogName]}))));
+                dotsGroup.selectAll(".dot" + i)
+                        .data(data)
+                        .enter().append("circle")
+                        .attr("class", "dot")
+                        .style("fill", d3.schemeCategory10[i])
+                        .attr("cx", d => x(d.Year))
+                        .attr("cy", d => y(d[dogName]))
+                        .attr("r", 5)
+                        
+                        .on("mouseover", function(event, d) { 
+                             const dogName = dogNames[i];
+                             const rank = d[dogName];
+                             const year = d.Year;
+
+                        div.transition()        
+                             .duration(200)      
+                             .style("opacity", 1);      
+                        div.html(`
+                             Dog: ${dogName}<br/>
+                             Year: ${year}<br/>
+                             Rank: ${rank}
+                        `)  
+                             .style("left", (event.pageX + 10) + "px")   
+                             .style("top", (event.pageY - 28) + "px");    
+                    })
+               
+                    .on("mouseout", function(event, d) {      
+                        div.transition()        
+                            .duration(500)      
+                            .style("opacity", 0);   
+                    });
+            });
+
+            svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x))
+                .style("fill", "rgba(54, 133, 251, 0.1)")
+                .selectAll("text")
+                .style("font-family", "'Poppins', sans-serif")
+                .style("fill", "rgba(0, 0, 0, 0.5)")
+                .style("font-weight", "600")
+                .style("font-size", "12px");
+
+          
+            svg.append("g")
+                .call(d3.axisLeft(y))
+                .style("fill", "rgba(54, 133, 251, 0.1)")
+                .selectAll("text")
+                .style("fill", "rgba(0, 0, 0, 0.5)")
+                .style("font-family", "'Poppins', sans-serif")
+                .style("font-weight", "600") 
+                .style("font-size", "12px");
+
+            dotsGroup.raise();
+            });
+
+        d3.csv("dog_rankings.csv").then(function(data) {
+            const dogNames = [
+                "Retrievers (Labrador)",
+                "French Bulldogs",
+                "German Shepherd Dogs",
+                "Retrievers (Golden)",
+                "Bulldogs",
+                "Poodles",
+                "Beagles",
+                "Rottweilers",
+                "Pointers",
+                "Dachshund"
+            ];
+
+            
+        d3.json("dog_images.json").then(function(images) {
+            const dogNames = Object.keys(images);
+
+            const dogNamesContainer = d3.select(".dog-names");
+
+            dogNames.forEach(function(dogName) {
+                const imageUrl = images[dogName];
+
+                const dogItem = dogNamesContainer.append("div").classed("dog-item", true);
+
+                const dogImage = dogItem.append("div").classed("dog-image", true);
+                dogImage.append("img").attr("src", imageUrl);
+
+                dogItem.append("div").classed("dog-name", true).text(dogName);
+            });
+
+            const dogImages = document.querySelectorAll('.dog-image');
+
+            dogImages.forEach(function(dogImage, index) {
+                dogImage.addEventListener('click', function() {
+                    const dogName = dogNames[index];
+                    
+                    const dogIndex = dogNames.indexOf(dogName);
+                    
+                    const color = d3.schemeCategory10[dogIndex];
+                    
+                    dogImage.style.borderColor = color;
+                    
+                    dogImages.forEach(function(otherDogImage, otherIndex) {
+                        if (otherIndex !== index) {
+                            otherDogImage.style.borderColor = 'transparent';
+                        }
+                        svg.selectAll('.line')
+                        .style('stroke-width', function(d, i) {
+                            return i === dogIndex ? '4px' : '1px';
+                        });
+                    
+
+                        
+        });
+
+        
+                });
+            });
+
+        });
+        
+            dogNames.forEach(function(dogName) {
+            });
+        });
+
+        
+    </script>
+</body>
+</html>

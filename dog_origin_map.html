@@ -1,0 +1,24 @@
+<html>
+<head>
+  <title>Doggie DataViz</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
+</head>
+<body>
+  <svg class="back-button" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" onclick="window.location.href = 'home.html';">
+    <path d="M11 18L5 12M5 12L11 6M5 12L19 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  
+  <section class="map">
+    <h2>Dog Origin World Map</h2>
+    <p>Provides an immersive experience, mapping the ancestral homelands of 12 beloved dog breeds on an interactive world map. From the Siberian Husky to the Labrador Retriever, explore the origins of each breed with just a click.</p>
+  </section>
+
+  <div id="map"></div>
+  <div id="breed-info"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

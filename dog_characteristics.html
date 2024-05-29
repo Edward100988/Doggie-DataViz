@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dog Characteristics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+    
+        body {
+        font-family: 'Poppins';
+        margin: 0;
+        padding: 0;
+       }
+
+       .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-radius: 50%;
+            background-color: #ffffff4a;
+        }
+
+        .back-button:hover {
+            background-color: #ffffff;
+        }
+
+        .title {
+            background-color: #3685FB;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .title h1 {
+            color: white;
+            font-family: 'Poppins';
+            font-weight: 600;
+            font-size: 44px;
+        }
+
+        .title p {
+            color: white;
+            font-family: 'Poppins';
+            font-weight: 400;
+            font-size: 22px;
+            text-align: left;
+            padding-left: 100px; 
+            padding-right: 100px;
+        }
+
+        .container {
+            margin: 30px auto;
+            width: 900px;
+            height: 500px;
+            border: 3 solid #000;
+        }
+
+        .container button{
+            font-family: 'Poppins' ;
+            font-weight: 400;
+            font-size: 16px;
+            padding: 15px;
+            border: 2px solid #0000007c;
+            color: #000;
+            transition: background-color 0.3s, color 0.3s;
+            border-radius: 60px;
+            text-decoration: none;
+            margin-top: 20px;
+            margin-bottom: 140px;
+        }
+
+        .container button:hover {
+            background-color: #ffffff; 
+            color: #3685FB; 
+            border: 2px solid #3685FB;
+            font-weight: 600;
+        }
+        
+        .container button:active {
+            background-color: #3685FB; 
+            color: #ffffff; 
+        }
+
+        .container button.active {
+            background-color: #3685FB;
+            color: #ffffff; 
+        }
+
+        .webs polygon {
+            fill: #EAEAEA;
+            fill-opacity: 0.5;
+            stroke: gray;
+            stroke-dasharray: 10 5;
+        }
+
+        .lines line {
+            stroke: gray;
+            stroke-dasharray: 10 5;
+
+        }
+
+        .areas polygon {
+            fill-opacity: 0.5;
+            stroke-width: 3;
+        }
+
+        .areas circle {
+            fill: white;
+            stroke-width: 3;
+        }
+        .tooltip {
+            position: absolute;
+            text-align: left;
+            padding: 8px;
+            font-size: 16px;
+            font-family: 'Poppins';
+            background: white;
+            border: 2px solid #3685FB;
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+
+    </style>
+</head>
+
+<body>
+    <svg class="back-button" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" onclick="window.location.href = 'home.html';">
+        <path d="M11 18L5 12M5 12L11 6M5 12L19 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+
+    <div class="title">
+        <h1>Dog Characteristics</h1>
+        <p>Experience an immersive radar chart visualization showcasing key traits and features of popular dog breeds. Delve into the unique characteristics of breeds like the Golden Retriever, Chihuahua, Welsh Corgi, and more.</p >    
+      </div>
+    
+    <div id="tooltip" class="tooltip"></div>
+
+    <div class="container">
+        <svg width="300%" height="125%"></svg>
+        <div class="tooltip" id="tooltip">Tooltip</div>
+
+        <button id="Golden Retriever">Golden Retriever</button>
+        <button id="Chihuahua">Chihuahua</button>
+        <button id="Welsh Corgi">Welsh Corgi</button>
+        <button id="Dachshund">Dachshund</button>
+        <button id="Pug">Pug</button>
+        <button id="Siberian Husky">Siberian Husky</button>
+    </div>
+
+    <script>
+        window.onload = function () {
+            var width = 800, height = 600;
+            var main = d3.select('.container svg').append('g')
+                .classed('main', true)
+                .attr('transform', "translate(" + width / 2 + ',' + height / 2 + ')');
+            d3.csv("dog identity.csv", function (d) {
+                return d;
+            }).then(function(data) {
+                let columns = data.columns;
+                data.colums = columns && columns.shift();
+                init({main, csvData: data});
+            })
+            
+        };
+
+        function getIDMAP(csvData) {
+            
+            let columns = csvData && csvData.columns;
+            var ID_MAP = { 
+                "Golden Retriever": [],
+                "Chihuahua": [],
+                "Welsh Corgi": [],
+                "Dachshund": [],
+                "Pug": [],
+                "Siberian Husky": [],
+            }
+            Object.keys(ID_MAP).forEach(item => {
+                let map = ID_MAP[item];
+                let currentData = csvData && csvData.find(csv => item === csv.breed);
+                columns && columns.forEach(col => {
+                    var colData = Number(currentData[col]);
+                    if (col && colData && !Number.isNaN(colData)) map.push(colData);
+                })
+            })
+            return ID_MAP
+        }
+
+        function init({main, csvData}) {
+            let columns = csvData && csvData.columns || [];
+            var data = {
+    
+                fieldNames: columns, 
+            };
+            let ID_MAP = getIDMAP(csvData); 
+            var radius = 280,
+                total = 7,
+                level = 4,
+                rangeMin = 0,
+                rangeMax = 5,
+                arc = 2 * Math.PI;
+            var onePiece = arc / total;
+            var polygons = {
+                webs: [],
+                webPoints: []
+            };
+            for (var k = level; k > 0; k--) {
+                var webs = '',
+                    webPoints = [];
+                var r = radius / level * k;
+                for (var i = 0; i < total; i++) {
+                    var x = r * Math.sin(i * onePiece),
+                        y = r * Math.cos(i * onePiece);
+                    webs += x + ',' + y + ' ';
+                    webPoints.push({
+                        x: x,
+                        y: y
+                    });
+                }
+                polygons.webs.push(webs);
+                polygons.webPoints.push(webPoints);
+            }
+            var webs = main.append('g')
+                .classed('webs', true);
+            webs.selectAll('polygon')
+                .data(polygons.webs)
+                .enter()
+                .append('polygon')
+                .attr('points', function (d) {
+                    return d;
+                });
+            var lines = main.append('g')
+                .classed('lines', true);
+            lines.selectAll('line')
+                .data(polygons.webPoints[0])
+                .enter()
+                .append('line')
+                .attr('x1', 0)
+                .attr('y1', 0)
+                .attr('x2', function (d) {
+                    return d.x;
+                })
+                .attr('y2', function (d) {
+                    return d.y;
+                });
+
+
+            getTitle({ main, onePiece, radius, data, total });
+
+            initBtn({ main, total, radius, rangeMin, rangeMax, onePiece, ID_MAP, columns })
+        }
+
+
+        function getColor(idx) {
+            var palette = [
+                '#2ec7c9', '#b6a2de', '#5ab1ef', '#ffb980', '#d87a80',
+                '#8d98b3', '#e5cf0d', '#97b552', '#95706d', '#dc69aa',
+                '#9a7fd1', '#9a7fd1', '#588dd5', '#f5994e', '#c05050',
+                '#59678c', '#c9ab00', '#7eb00a', '#6f5553', '#c14089'
+            ]
+            return palette[idx % palette.length];
+        }
+
+        function getAreas({ main, areasData, data, columns }) {
+            let text = '';
+            columns && columns.forEach((item, index) => {
+                text += item + ':' + data[index] + '<br/>';
+            });
+
+            var areas = main.append('g')
+                .classed('areas', true)
+                .on('mousemove', function (event) {
+                        d3.select('#tooltip')
+                        .style('opacity', 1)
+                        .html(text)
+                        .style('left', (event.pageX + 10) + 'px')
+                        .style('top', (event.pageY - 10) + 'px');
+                    })
+                    .on('mouseout', function () {
+                        d3.select('#tooltip').style('opacity', 0);
+                    });
+            areas.selectAll('g')
+                .data(areasData)
+                .enter()
+                .append('g')
+                .attr('class', function (d, i) {
+                    return 'area' + (i + 1);
+                });
+            for (var i = 0; i < areasData.length; i++) {
+                var area = areas.select('.area' + (i + 1)),
+                    areaData = areasData[i];
+                area.append('polygon')
+                    .attr('points', areaData.polygon)
+                    .attr('stroke', function (d, index) {
+                        return getColor(i);
+                    })
+                    .attr('fill', function (d, index) {
+                        return getColor(i);
+                    });
+                var circles = area.append('g')
+                    .classed('circles', true);
+                circles.selectAll('circle')
+                    .data(areaData.points)
+                    .enter()
+                    .append('circle')
+                    .attr('cx', function (d) {
+                        return d.x;
+                    })
+                    .attr('cy', function (d) {
+                        return d.y;
+                    })
+                    .attr('r', 3)
+                    .attr('stroke', function (d, index) {
+                        return getColor(i);
+                    });
+            }
+        }
+
+        function getTitle({ main, onePiece, radius, data, total }) {
+            var textPoints = [];
+            var textRadius = radius + 20;
+            for (var i = 0; i < total; i++) {
+                var x = textRadius * Math.sin(i * onePiece),
+                    y = textRadius * Math.cos(i * onePiece);
+                textPoints.push({
+                    x: x,
+                    y: y
+                });
+            }
+            var texts = main.append('g')
+                .classed('texts', true);
+            texts.selectAll('text')
+                .data(textPoints)
+                .enter()
+                .append('text')
+                .attr('x', function (d) {
+                    return d.x;
+                })
+                .attr('y', function (d) {
+                    return d.y;
+                })
+                .text(function (d, i) {
+                    return data.fieldNames[i];
+                });
+        }
+
+        function getAreasData({ list, total, radius, rangeMin, rangeMax, onePiece }) {
+            
+            var areasData = [];
+            var values = list;
+            for (let i = 0; i < values.length; i++) {
+                var value = values[i],
+                    area = '',
+                    points = [];
+                for (let k = 0; k < total; k++) {
+                    var r = radius * (value[k] - rangeMin) / (rangeMax - rangeMin);
+                    var x = r * Math.sin(k * onePiece),
+                        y = r * Math.cos(k * onePiece);
+                    area += x + ',' + y + ' ';
+                    points.push({
+                        x: x,
+                        y: y
+                    })
+                }
+                areasData.push({
+                    polygon: area,
+                    points: points
+                });
+            }
+            return areasData;
+        }
+        function initBtn({ main, total, radius, rangeMin, rangeMax, onePiece, ID_MAP, columns }) {
+            var btns = document.querySelectorAll('button');
+            btns.forEach(item => {
+                item && item.addEventListener('click', function (e) {
+                    let id = e && e.currentTarget.id;
+                    if (id) {
+                        let data = ID_MAP[id];
+                        if (data) {
+                            let areasData = getAreasData({ list: [data], total, radius, rangeMin, rangeMax, onePiece });
+                            var mainDiv = document.getElementsByClassName("main")[0];
+                            var areasDiv = mainDiv.querySelectorAll(".areas")[0];
+                            areasDiv && mainDiv.removeChild(areasDiv);
+                            getAreas({ main, areasData, data, columns })
+                        }
+                    }
+                })
+            })
+        }
+
+        function initBtn({ main, total, radius, rangeMin, rangeMax, onePiece, ID_MAP, columns }) {
+            var btns = document.querySelectorAll('button');
+            btns.forEach(item => {
+                item && item.addEventListener('click', function (e) {
+                    let id = e && e.currentTarget.id;
+                    if (id) {
+                        let data = ID_MAP[id];
+                        if (data) {
+                            let areasData = getAreasData({ list: [data], total, radius, rangeMin, rangeMax, onePiece });
+                            var mainDiv = document.getElementsByClassName("main")[0];
+                            var areasDiv = mainDiv.querySelectorAll(".areas")[0];
+                            areasDiv && mainDiv.removeChild(areasDiv);
+                            getAreas({ main, areasData, data, columns })
+
+                    btns.forEach(btn => {
+                        if (btn.id === id) {
+                            btn.classList.add('active');
+                        } else {
+                            btn.classList.remove('active');
+                        }
+                    });
+                }
+            }
+        })
+    })
+}
+
+
+    </script>
+</body>
+
+</html>

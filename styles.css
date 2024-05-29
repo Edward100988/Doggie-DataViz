@@ -1,0 +1,97 @@
+body {
+  font-family: 'Poppins';
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff;
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border-radius: 50%;
+  background-color: #ffffff4a;
+}
+
+.back-button:hover {
+  background-color: #ffffff;
+}
+
+.map {
+  background-color: #3685FB;
+  padding: 40px;
+}
+
+.map h2 {
+  font-family: 'Poppins';
+  font-weight: 600;
+  font-size: 48px;
+  color: #ffffff;
+  text-align: center;
+}
+
+.map p {
+  font-family: 'Poppins';
+  font-weight: 400;
+  font-size: 22px;
+  color: #ffffff;
+  padding-left: 100px;
+  padding-right: 100px;
+}
+
+#map {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 70vh;
+}
+
+.country {
+  fill: #3685fb82;
+  stroke: #fff;
+  stroke-width: 1px;
+}
+
+.breed-circle {
+  cursor: pointer;
+}
+
+.tooltip {
+  position: fixed;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 10px;
+  font-size: 12px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+
+.tooltip-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.tooltip-breed {
+  font-weight: bold;
+  font-size: 16px;
+  margin-top: 5px;
+}
+
+.tooltip-origin {
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.tooltip-icon img {
+  width: 76px;
+  height: 76px;
+}
